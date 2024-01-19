@@ -1,0 +1,2 @@
+# Camel Case
+myVariableName = "John"
