@@ -1,2 +1,0 @@
-# Pascal Case
-MyVariableName = "John"
