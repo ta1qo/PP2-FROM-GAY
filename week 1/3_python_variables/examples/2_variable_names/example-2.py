@@ -1,2 +1,0 @@
-# Camel Case
-myVariableName = "John"
