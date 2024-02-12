@@ -1,7 +1,6 @@
 from math import tan, radians
 
-n = int(input("Input number of sides: "))
-l = int(input("Input the length of a side: "))
+n, l = int(input("Input number of sides: ")), int(input("Input the length of a side: "))
 perimeter = n * l
 alpha = tan(radians(180/n))   # radians Преобразует угол x, заданный в градусах, в радианы
 apothem = l / (2*alpha)

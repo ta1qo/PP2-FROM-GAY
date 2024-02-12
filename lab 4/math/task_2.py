@@ -1,6 +1,2 @@
-h = int(input("Height: "))
-a = int(input("Base, first value: "))
-b = int(input("Base, second value: "))
-
-area = (a + b) / 2 * h
-print("Expected Output:", area)
+h, a, b = int(input("Height: ")), int(input("Base, first value: ")), int(input("Base, second value: "))
+print("Expected Output:", (a + b) / 2 * h)
