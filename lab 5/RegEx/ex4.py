@@ -1,9 +1,18 @@
 import re
 
-line = input("Input a string: ")
-x = re.search(r"[A-Z][a-z]+", line)
+def test(pattern, testData, testNumber, expectedResult):
+    if re.search(pattern, testData) == expectedResult:
+        print(testNumber + " is passed!")
+    elif re.search(pattern, testData) != None:
+        print(testNumber + " is passed!")
+    else: 
+        print(testNumber + " is not passed!")
+        
+        
+pattern = r"[A-Z][a-z]+"
 
-if x == None:
-    print("Not found!")
-else:
-    print(f"Found at {x.span()} as {x.group()}")
+test(pattern, "Beee", "test1", True)
+test(pattern, "ddZZZZiii", "test2", True)
+test(pattern, "VILLAIN", "test3", False)
+test(pattern, "45FF_aaaa", "test4", False)
+test(pattern, "&(*God)", "test5", True)      
