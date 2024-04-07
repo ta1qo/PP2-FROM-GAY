@@ -1,4 +1,3 @@
-# Imports
 import random
 import time
 
@@ -6,39 +5,31 @@ import pygame
 import sys
 from pygame.locals import *
 
-# Initialzing
 pygame.init()
 
-# Setting up FPS
 FPS = 60
 FramePerSec = pygame.time.Clock()
 
-# Creating colors
 BLUE = (0, 0, 255)
 RED = (255, 0, 0)
 GREEN = (0, 255, 0)
 BLACK = (0, 0, 0)
 WHITE = (255, 255, 255)
 
-# Other Variables for use in the program
 SCREEN_WIDTH = 400
 SCREEN_HEIGHT = 600
-SPEED_OF_COIN = 5
-SPEED_OF_ENEMY = 5
+SPEED = 5
 SCORE = 0
 COIN_SCORE = 0
 TOTAL_SCORE = 0
 
-# Setting up Fonts
 font = pygame.font.SysFont("Verdana", 60)
 font_small = pygame.font.SysFont("Verdana", 20)
 game_over = font.render("Game Over", True, BLACK)
 
 background = pygame.image.load("AnimatedStreet.png")
 
-# Create a white screen
 DISPLAYSURF = pygame.display.set_mode((400, 600))
-DISPLAYSURF.fill(WHITE)
 pygame.display.set_caption("Game")
 
 
@@ -51,7 +42,7 @@ class Enemy(pygame.sprite.Sprite):
 
     def move(self):
         global SCORE
-        self.rect.move_ip(0, SPEED_OF_ENEMY)
+        self.rect.move_ip(0, SPEED)
         if self.rect.top > 600:
             SCORE += 1
             self.rect.top = 0
@@ -73,10 +64,10 @@ class Player(pygame.sprite.Sprite):
         # self.rect.move_ip(0,5)
 
         if self.rect.left > 0:
-            if pressed_keys[pygame.K_LEFT]:
+            if pressed_keys[K_LEFT]:
                 self.rect.move_ip(-5, 0)
         if self.rect.right < SCREEN_WIDTH:
-            if pressed_keys[pygame.K_RIGHT]:
+            if pressed_keys[K_RIGHT]:
                 self.rect.move_ip(5, 0)
 
     def collect_coin(self, coins):
@@ -94,7 +85,7 @@ class Coin(pygame.sprite.Sprite):
         self.rect.center = (random.randint(40, SCREEN_WIDTH - 40), 0)
 
     def move(self):
-        self.rect.move_ip(0, SPEED_OF_COIN)
+        self.rect.move_ip(0, SPEED)
         if self.rect.top > 600:
             self.rect.top = 0
             self.rect.center = (random.randint(40, SCREEN_WIDTH - 40), 0)
@@ -119,47 +110,40 @@ all_sprites.add(C1)
 INC_SPEED = pygame.USEREVENT + 1
 pygame.time.set_timer(INC_SPEED, 1000)
 
-done = False
-
 # Game Loop
-while not done:
+while True:
 
     # Cycles through all events occurring
     for event in pygame.event.get():
         if event.type == INC_SPEED:
-            SPEED_OF_COIN += 0.5
-            SPEED_OF_ENEMY += 0.5
-        if event.type == pygame.QUIT:
+            SPEED += 0.5
+        if event.type == QUIT:
             pygame.quit()
             sys.exit()
-        if event.type == pygame.KEYDOWN:
-            if event.key == pygame.K_ESCAPE: # exit the game
-                done = True
 
     DISPLAYSURF.blit(background, (0, 0))
     scores = font_small.render(str(SCORE), True, BLACK)
-    coin_scores = font_small.render(f"Coins: {COIN_SCORE}", True, BLACK)
-    total_scores = font_small.render(f"Score: {TOTAL_SCORE}", True, BLACK)
+    coin_scores = font_small.render(str(COIN_SCORE), True, BLACK)
+    total_scores = font_small.render(str(TOTAL_SCORE), True, BLACK)
     DISPLAYSURF.blit(scores, (10, 10))
-    DISPLAYSURF.blit(coin_scores, (280, 10))
-    DISPLAYSURF.blit(total_scores, (280, 40))
+    DISPLAYSURF.blit(coin_scores, (360, 10))
+    DISPLAYSURF.blit(total_scores, (360, 30))
 
     # Moves and Re-draws all Sprites
     for entity in all_sprites:
         DISPLAYSURF.blit(entity.image, entity.rect)
         entity.move()
 
-    random_score = random.randint(5, 10)
+    total_score = random.randint(0, 10)
 
     # Check for coin collection
     if P1.collect_coin(coins):
-        pygame.mixer.Sound("GetCoin.mp3").play()
+        # if player reach 100 points then speed of the game increase on 1.0
+        if TOTAL_SCORE == 100:
+            SPEED += 1.0
         COIN_SCORE += 1
         # Total score increase on random points
-        TOTAL_SCORE += random_score
-        # If player reach 100 points then speed of the game increase on 1.0
-        if TOTAL_SCORE == 100:
-            SPEED_OF_ENEMY += 1.0
+        TOTAL_SCORE += total_score
         new_coin = Coin()
         coins.add(new_coin)
         all_sprites.add(new_coin)
