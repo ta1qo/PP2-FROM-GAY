@@ -83,7 +83,7 @@ def add():
 def update():
     print("enter name and new phone number:")
     new_phone = tuple(map(str, input().split()))
-    cur.execute('SELECT * FROM phonebook WHERE name = %s', (new_phone[0], ))
+    cur.execute('SELECT name FROM phonebook WHERE name = %s', (new_phone[0], ))
     if cur.fetchone():
         cur.execute('UPDATE phonebook SET phone = %s WHERE name = %s', (new_phone[1], new_phone[0]))                   
         print(f"updated phone number for {new_phone[0]}")
@@ -114,21 +114,21 @@ def sortbysurname():
         menu()
 
 def search():
-    mystring = input("enter name/surname to find user: ")
-    cur.execute('SELECT * FROM phonebook WHERE name = %s OR surname = %s', (mystring, mystring))
+    mypattern = input("enter pattern of name/surname to find users: ")
+    cur.execute('SELECT * FROM phonebook WHERE name ILIKE %s OR surname ILIKE %s', (f'{mypattern}%', f'{mypattern}%'))
     rows = cur.fetchall()
     if rows:
         for row in rows:
             print(row)
         conn.commit()
     else:
-        print(f"user - {mystring} does not exist")
+        print(f"'{mypattern}' not found")
     if input("\n0 - return to menu: ") == '0':
         menu()
     
 def delete():
     name = input("enter name to delete: ")
-    cur.execute(f"SELECT * FROM phonebook WHERE name = '{name}'")
+    cur.execute(f"SELECT name FROM phonebook WHERE name = '{name}'")
     if cur.fetchone():
         cur.execute(f"DELETE FROM phonebook WHERE name = '{name}'")
         print(f"user - {name} deleted")
