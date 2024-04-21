@@ -12,7 +12,7 @@ cur.execute(''' CREATE TABLE IF NOT EXISTS phonebook(
                     id SERIAL PRIMARY KEY,
                     name VARCHAR(20),
                     surname VARCHAR(20),
-                    phone VARCHAR(11))
+                    phone BIGINT)
             ''')
 
 def exist(item):
@@ -85,7 +85,7 @@ def update():
     new_phone = tuple(map(str, input().split()))
     cur.execute('SELECT * FROM phonebook WHERE name = %s', (new_phone[0], ))
     if cur.fetchone():
-        cur.execute('UPDATE phonebook SET phone = %s WHERE name = %s', new_phone)                   
+        cur.execute('UPDATE phonebook SET phone = %s WHERE name = %s', (new_phone[1], new_phone[0]))                   
         print(f"updated phone number for {new_phone[0]}")
         conn.commit()
     else:
