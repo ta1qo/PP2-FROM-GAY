@@ -1,5 +1,6 @@
 import csv
 import psycopg2
+import re
 
 conn = psycopg2.connect(dbname = "postgres",
                         user = "postgres",
@@ -181,14 +182,18 @@ def insertbylist():
 
         print("enter data for new user by this order -> name, surname, phone):")
         new_user = list(map(str, input().split()))  
+
         if len(new_user) != 3:
             incorrect_data.append(new_user)
             continue
-        elif not new_user[2].isdigit():
+        elif not re.match('^7[0-9]{10}$', new_user[2]) or not re.match('^8[0-9]{10}$', new_user[2]):
             incorrect_data.append(new_user)
             continue
-        
-        insert(new_user)
+        elif not new_user[0].istitle() or not new_user[1].istitle() or not new_user[0].isalpha() or not new_user[1].isalpha():
+            incorrect_data.append(new_user)
+            continue
+        else:
+            insert(new_user)
 
     if len(incorrect_data) == 0:
         return
