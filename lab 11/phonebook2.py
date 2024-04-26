@@ -9,15 +9,15 @@ conn = psycopg2.connect(dbname = "postgres",
                         port = 5432)
 
 cur = conn.cursor()
-cur.execute(''' CREATE TABLE IF NOT EXISTS phonebook(
+cur.execute(''' CREATE TABLE IF NOT EXISTS phonebook2(
                     id SERIAL PRIMARY KEY,
                     name VARCHAR(20),
                     surname VARCHAR(20),
-                    phone BIGINT)
+                    phone VARCHAR(11))
             ''')
 
 def exist(item):
-    cur.execute('SELECT * FROM phonebook WHERE name = %s AND surname = %s AND phone = %s', (item[0], item[1], item[2]))
+    cur.execute('SELECT * FROM phonebook2 WHERE name = %s AND surname = %s AND phone = %s', (item[0], item[1], item[2]))
     row = cur.fetchone() # row=none if not exist
     return True if row else False
 
@@ -54,7 +54,7 @@ def menu():
         insertbylist()
 
 def show():
-    cur.execute('SELECT * FROM phonebook')
+    cur.execute('SELECT * FROM phonebook2')
     rows = cur.fetchall()
     for row in rows:
         print(row)
@@ -67,7 +67,7 @@ def upload():
         reader = csv.reader(file)
         for item in reader:    
             if not exist(item):
-                cur.execute('INSERT INTO phonebook(name, surname, phone) VALUES (%s, %s, %s)', (item[0], item[1], item[2]))
+                cur.execute('INSERT INTO phonebook2(name, surname, phone) VALUES (%s, %s, %s)', (item[0], item[1], item[2]))
                 print(f"new user: {item}")
         conn.commit()
 
@@ -79,11 +79,11 @@ def add():
     new_user = list(map(str, input().split()))  
 
     if not exist(new_user):
-        cur.execute('INSERT INTO phonebook (name, surname, phone) VALUES (%s, %s, %s)', new_user)
+        cur.execute('INSERT INTO phonebook2 (name, surname, phone) VALUES (%s, %s, %s)', new_user)
         print("added new user")
         conn.commit()
     elif exist(new_user):
-        cur.execute('UPDATE phonebook SET phone = %s WHERE surname = %s AND name = %s', (new_user[2], new_user[1], new_user[0]))
+        cur.execute('UPDATE phonebook2 SET phone = %s WHERE surname = %s AND name = %s', (new_user[2], new_user[1], new_user[0]))
         print(f"updated phone number for {new_user[0]}")
     else:
         print("this user already exists")
@@ -94,10 +94,10 @@ def add():
 def update():
     print("enter name and new phone number:")
     new_phone = tuple(map(str, input().split()))
-    cur.execute('SELECT name FROM phonebook WHERE name = %s', (new_phone[0], ))
+    cur.execute('SELECT name FROM phonebook2 WHERE name = %s', (new_phone[0], ))
 
     if cur.fetchone():
-        cur.execute('UPDATE phonebook SET phone = %s WHERE name = %s', (new_phone[1], new_phone[0]))                   
+        cur.execute('UPDATE phonebook2 SET phone = %s WHERE name = %s', (new_phone[1], new_phone[0]))                   
         print(f"updated phone number for {new_phone[0]}")
         conn.commit()
     else:
@@ -107,7 +107,7 @@ def update():
         menu()
 
 def sortbyname():
-    cur.execute('SELECT * FROM phonebook ORDER BY name')
+    cur.execute('SELECT * FROM phonebook2 ORDER BY name')
     rows = cur.fetchall()
     print("sorted by name: ")
     for row in rows:
@@ -118,7 +118,7 @@ def sortbyname():
         menu()
 
 def sortbysurname():
-    cur.execute('SELECT * FROM phonebook ORDER BY surname')
+    cur.execute('SELECT * FROM phonebook2 ORDER BY surname')
     rows = cur.fetchall()
     print("sorted by surname: ")
     for row in rows:
@@ -130,7 +130,14 @@ def sortbysurname():
 
 def search():
     mypattern = input("enter pattern of name/surname/phone to find users: ")
-    cur.execute('SELECT * FROM phonebook WHERE name ILIKE %s OR surname ILIKE %s or phone ILIKE %s', (f'{mypattern}%', f'{mypattern}%', f'{mypattern}%'))
+    mode = input("search by name/surname/phone? ")
+    if mode == "name":
+        cur.execute('SELECT * FROM phonebook2 WHERE name ILIKE %s', (f'%{mypattern}%', ))
+    elif mode == "surname":
+        cur.execute('SELECT * FROM phonebook2 WHERE surname ILIKE %s', (f'%{mypattern}%', ))
+    elif mode == "phone":
+        cur.execute('SELECT * FROM phonebook2 WHERE phone LIKE %s', (f'%{mypattern}%', ))
+
     rows = cur.fetchall()
 
     if rows:
@@ -147,16 +154,16 @@ def delete():
 
     if mode == "name":
         name = input("enter name to delete: ")
-        cur.execute(f"SELECT name FROM phonebook WHERE name = '{name}'")
+        cur.execute(f"SELECT name FROM phonebook2 WHERE name = '{name}'")
         if cur.fetchone():
-            cur.execute(f"DELETE FROM phonebook WHERE name = '{name}'")
+            cur.execute(f"DELETE FROM phonebook2 WHERE name = '{name}'")
             print(f"user - {name} deleted")
             conn.commit()
     elif mode == "phone":
         phone = input("enter phone to delete: ")
-        cur.execute(f"SELECT phone FROM phonebook WHERE phone = '{phone}'")
+        cur.execute(f"SELECT phone FROM phonebook2 WHERE phone = '{phone}'")
         if cur.fetchone():
-            cur.execute(f"DELETE FROM phonebook WHERE phone = '{phone}'")
+            cur.execute(f"DELETE FROM phonebook2 WHERE phone = '{phone}'")
             print(f"user with phone - {phone} deleted")
             conn.commit()
     else:
@@ -167,7 +174,7 @@ def delete():
 
 def insert(data):
     if not exist(data):
-        cur.execute('INSERT INTO phonebook (name, surname, phone) VALUES (%s, %s, %s)', data)
+        cur.execute('INSERT INTO phonebook2 (name, surname, phone) VALUES (%s, %s, %s)', data)
         print("added new user")
         conn.commit()
     else:
@@ -179,21 +186,22 @@ def insertbylist():
         mode = input("want to add user? yes/no: ")
         if mode == "no":
             break
+        elif mode == "yes":
+            print("enter data for new user by this order -> name, surname, phone):")
+            new_user = list(map(str, input().split()))  
 
-        print("enter data for new user by this order -> name, surname, phone):")
-        new_user = list(map(str, input().split()))  
-
-        if len(new_user) != 3:
-            incorrect_data.append(new_user)
-            continue
-        elif not re.match('^7[0-9]{10}$', new_user[2]) or not re.match('^8[0-9]{10}$', new_user[2]):
-            incorrect_data.append(new_user)
-            continue
-        elif not new_user[0].istitle() or not new_user[1].istitle() or not new_user[0].isalpha() or not new_user[1].isalpha():
-            incorrect_data.append(new_user)
-            continue
-        else:
-            insert(new_user)
+            if len(new_user) != 3:
+                incorrect_data.append(new_user)
+                continue
+            elif not re.match(r'^7[0-9]{10}$', new_user[2]):
+                incorrect_data.append(new_user)
+                print('4')
+                continue
+            elif not re.match(r"^[A-Z][a-z]*$", new_user[0]) or not re.match(r"^[A-Z][a-z]*$", new_user[1]):
+                incorrect_data.append(new_user)
+                continue
+            else:
+                insert(new_user)
 
     if len(incorrect_data) == 0:
         return
